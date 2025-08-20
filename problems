@@ -1,0 +1,12 @@
+1. invite code not one time user
+    fix: Hide invite code by default
+        inviteCode: {
+        type: String,
+        required: true,
+        unique: true,
+        default: generateInviteCode,
+        select: false,
+    },
+    Make join-by-invite one-time by rotating code in a transaction (use resetInviteCode()),
+    revent non-owners from reading the code; add owner-only endpoints
+2.
