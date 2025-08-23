@@ -5,7 +5,7 @@ export interface AccountDocument extends Document {
     provider: ProviderEnumType;
     providerId: string; // google id, email
     userId: mongoose.Types.ObjectId;
-    refreshToken: string | null;
+    refreshToken?: string | null;
     tokenExpiry: Date | null;
     createdAt: Date;
 }
