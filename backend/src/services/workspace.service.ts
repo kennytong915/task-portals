@@ -196,8 +196,7 @@ export const deleteWorkspaceService = async (
     // Capture users whose currentWorkspace points to the soon-to-be-deleted workspace
     const affectedUsers = (await UserModel.find({
       currentWorkspace: workspace._id,
-    })
-      .session(session)) as UserDocument[];
+    }).session(session)) as UserDocument[];
 
     // Remove related entities
     await ProjectModel.deleteMany({ workspace: workspace._id }).session(
@@ -233,4 +232,24 @@ export const deleteWorkspaceService = async (
   } finally {
     await session.endSession();
   }
+};
+
+export const getProjectsInWorkspaceService = async (
+  workspaceId: string,
+  pageSize: number,
+  pageNumber: number
+) => {
+  const totalCount = await ProjectModel.countDocuments({
+    workspace: workspaceId,
+  });
+  const skip = (pageNumber - 1) * pageSize;
+  const projects = await ProjectModel.find({
+    workspace: workspaceId,
+  })
+    .skip(skip)
+    .limit(pageSize)
+    .populate("createdBy", "_id name profilePicture -password")
+    .sort({ createdAt: -1 });
+  const totalPages = Math.ceil(totalCount / pageSize);
+  return { projects, totalCount, totalPages, skip };
 };
