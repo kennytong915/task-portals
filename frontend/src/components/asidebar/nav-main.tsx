@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import useWorkspaceId from "@/hooks/use-workspace-id";
+import { useAuthContext } from "@/context/auth-provider";
+import { Permissions } from "@/constant";
 
 type ItemType = {
   title: string;
@@ -25,6 +27,8 @@ type ItemType = {
 export function NavMain() {
   const workspaceId = useWorkspaceId();
   const location = useLocation();
+  const { hasPermission } = useAuthContext();
+  const canManageSettings = hasPermission(Permissions.MANAGE_WORKSPACE_SETTINGS);
 
   const pathname = location.pathname;
 
@@ -44,12 +48,12 @@ export function NavMain() {
       url: `/workspace/${workspaceId}/members`,
       icon: Users,
     },
-
-    {
+    
+    ...(canManageSettings ? [{
       title: "Settings",
       url: `/workspace/${workspaceId}/settings`,
       icon: Settings,
-    },
+    }] : []),
   ];
   return (
     <SidebarGroup>

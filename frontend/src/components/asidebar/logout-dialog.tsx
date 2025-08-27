@@ -8,15 +8,41 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useCallback } from "react";
+import { logoutMutationFn } from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const LogoutDialog = (props: {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { isOpen, setIsOpen } = props;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: logoutMutationFn,
+    onSuccess: () => {
+      queryClient.resetQueries({ queryKey: ["authUser"] });
+      navigate("/");
+      setIsOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Handle logout action
-  const handleLogout = useCallback(() => {}, []);
+  const handleLogout = useCallback(() => {
+    if (isPending) return;
+    mutate();
+  }, [isPending, mutate]);
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -29,7 +55,7 @@ const LogoutDialog = (props: {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" onClick={handleLogout}>
+            <Button type="button" onClick={handleLogout} disabled={isPending}>
               Sign out
             </Button>
             <Button type="button" onClick={() => setIsOpen(false)}>
