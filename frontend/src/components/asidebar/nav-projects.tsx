@@ -1,4 +1,11 @@
-import { ArrowRight, Folder, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Folder,
+  Loader,
+  MoreHorizontal,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -23,6 +30,9 @@ import useConfirmDialog from "@/hooks/use-confirm-dialog";
 import { Button } from "../ui/button";
 import PermissionsGuard from "../resuable/permission-guard";
 import { Permissions } from "@/constant";
+import { PaginationType } from "@/types/api.type";
+import useGetProjectsInWorkspaceQuery from "@/hooks/api/use-get-projects";
+import { useState } from "react";
 
 export function NavProjects() {
   const navigate = useNavigate();
@@ -35,29 +45,24 @@ export function NavProjects() {
   const workspaceId = useWorkspaceId();
 
   const { isMobile } = useSidebar();
+  const [pageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
-  const projects = [
-    {
-      id: "pro-383dh",
-      name: "Design Engineering",
-      emoji: "📊",
-      url: `/workspace/${workspaceId}/project/:pro-383dh`,
-    },
-    {
-      id: "p383dh",
-      name: "Sales & Marketing",
-      emoji: "📈",
-      url: `/workspace/${workspaceId}/project/:p383dh`,
-    },
-    {
-      id: "pro-wwhe",
-      name: "Travel",
-      emoji: "✈️",
-      url: `/workspace/${workspaceId}/project/:pro-wwhe`,
-    },
-  ];
+  const { data, isPending, isFetching, isError } =
+    useGetProjectsInWorkspaceQuery({
+      workspaceId,
+      pageSize,
+      pageNumber,
+    });
 
-  const hasMore = true;
+  const projects = data?.projects || [];
+  const pagination = data?.pagination || ({} as PaginationType);
+  const hasMore = pagination?.totalPages > pageNumber;
+
+  const fetchNextPage = () => {
+    if (!hasMore || isFetching) return;
+    setPageSize((prev) => prev + 5);
+  };
 
   const handleConfirm = () => {};
   return (
@@ -77,6 +82,10 @@ export function NavProjects() {
           </PermissionsGuard>
         </SidebarGroupLabel>
         <SidebarMenu className="h-[320px] scrollbar overflow-y-auto pb-2">
+          {isError ? <div>Error occured</div> : null}
+          {isPending ? (
+            <Loader className="animate-spin w-5 h-5 place-self-center" />
+          ) : null}
           {projects?.length === 0 ? (
             <div className="pl-3">
               <p className="text-xs text-muted-foreground">
@@ -97,10 +106,10 @@ export function NavProjects() {
             </div>
           ) : (
             projects.map((item) => {
-              const projectUrl = item.url;
+              const projectUrl = `/workspace/${workspaceId}/project/${item._id}`;
 
               return (
-                <SidebarMenuItem key={item.id}>
+                <SidebarMenuItem key={item._id}>
                   <SidebarMenuButton asChild isActive={projectUrl === pathname}>
                     <Link to={projectUrl}>
                       {item.emoji}
@@ -125,14 +134,19 @@ export function NavProjects() {
                         <Folder className="text-muted-foreground" />
                         <span>View Project</span>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        disabled={false}
-                        onClick={() => onOpenDialog(item)}
+
+                      <PermissionsGuard
+                        requiredPermission={Permissions.DELETE_PROJECT}
                       >
-                        <Trash2 className="text-muted-foreground" />
-                        <span>Delete Project</span>
-                      </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          disabled={false}
+                          onClick={() => onOpenDialog(item)}
+                        >
+                          <Trash2 className="text-muted-foreground" />
+                          <span>Delete Project</span>
+                        </DropdownMenuItem>
+                      </PermissionsGuard>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </SidebarMenuItem>
@@ -142,9 +156,13 @@ export function NavProjects() {
 
           {hasMore && (
             <SidebarMenuItem>
-              <SidebarMenuButton className="text-sidebar-foreground/70">
+              <SidebarMenuButton
+                className="text-sidebar-foreground/70"
+                disabled={isFetching}
+                onClick={fetchNextPage}
+              >
                 <MoreHorizontal className="text-sidebar-foreground/70" />
-                <span>More</span>
+                <span>{isFetching ? "Loading..." : "More"}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
