@@ -30,6 +30,7 @@ app.use(
     httpOnly: true,
     secure: config.NODE_ENV === "production",
     sameSite: config.NODE_ENV === "production" ? "none" : "lax", // "none" for cross-origin
+    domain: config.NODE_ENV === "production" ? undefined : undefined, // Let browser handle domain
   })
 );
 
