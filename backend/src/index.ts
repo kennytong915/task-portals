@@ -29,7 +29,7 @@ app.use(
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
     secure: config.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: config.NODE_ENV === "production" ? "none" : "lax", // "none" for cross-origin
   })
 );
 
@@ -38,8 +38,12 @@ app.use(passport.session());
 
 app.use(
   cors({
-    origin: config.FRONTEND_ORIGIN,
-    credentials: true,
+    origin: config.NODE_ENV === 'production' 
+      ? [config.FRONTEND_ORIGIN] 
+      : ["http://localhost:3000", "http://localhost:5173"], // Local dev
+    credentials: true, // Essential for cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
