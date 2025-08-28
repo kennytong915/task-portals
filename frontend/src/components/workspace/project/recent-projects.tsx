@@ -26,7 +26,7 @@ const RecentProjects = () => {
         </div>
       )}
       <ul role="list" className="space-y-2">
-        {projects.map((project, index) => {
+        {projects.map((project) => {
           const name = project.createdBy.name;
           const initials = getAvatarFallbackText(name);
           const avatarColor = getAvatarColor(name);
