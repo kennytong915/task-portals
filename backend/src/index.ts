@@ -22,13 +22,26 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
+// CORS should come BEFORE session and passport
+app.use(
+  cors({
+    origin: config.NODE_ENV === 'production' 
+      ? [config.FRONTEND_ORIGIN] 
+      : ["http://localhost:3000", "http://localhost:5173"],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    optionsSuccessStatus: 200, // For legacy browser support
+  })
+);
+
 app.use(
   session({
     name: "session",
     keys: [config.SESSION_SECRET],
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    secure: config.NODE_ENV === "production",
+    secure: config.NODE_ENV === "production", // Only send over HTTPS in production
     sameSite: config.NODE_ENV === "production" ? "none" : "lax", // "none" for cross-origin
     domain: config.NODE_ENV === "production" ? undefined : undefined, // Let browser handle domain
   })
@@ -36,17 +49,6 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.use(
-  cors({
-    origin: config.NODE_ENV === 'production' 
-      ? [config.FRONTEND_ORIGIN] 
-      : ["http://localhost:3000", "http://localhost:5173"], // Local dev
-    credentials: true, // Essential for cookies
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
 
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
   res.status(HTTPSTATUS.OK).json({
