@@ -5,6 +5,8 @@ import EditProjectDialog from "./edit-project-dialog";
 import useWorkspaceId from "@/hooks/use-workspace-id";
 import { getProjectByIdQueryFn } from "@/lib/api";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import PermissionsGuard from "@/components/resuable/permission-guard";
+import { Permissions } from "@/constant";
 
 const ProjectHeader = () => {
   const param = useParams();
@@ -18,7 +20,7 @@ const ProjectHeader = () => {
     placeholderData: keepPreviousData
   });
 
-  // Fallback if no project data is found
+  const project = data?.project;
   const projectEmoji = data?.project?.emoji ||  "📊";
   const projectName = data?.project?.name ||  "Untitled project";
 
@@ -38,7 +40,9 @@ const ProjectHeader = () => {
         <h2 className="flex items-center gap-3 text-xl font-medium truncate tracking-tight">
           {renderContent()}
         </h2>
-        <EditProjectDialog project={{} as any} />
+        <PermissionsGuard requiredPermission={Permissions.EDIT_PROJECT}>
+        <EditProjectDialog project={project} />
+        </PermissionsGuard>
       </div>
       <CreateTaskDialog projectId={projectId} />
     </div>

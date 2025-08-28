@@ -17,6 +17,7 @@ import {
   AllProjectPayloadType,
   AllProjectResponseType,
   ProjectByIdPayloadType,
+  EditProjectPayloadType,
 } from "@/types/api.type";
 
 export const loginMutationFn = async (
@@ -124,7 +125,17 @@ export const createProjectMutationFn = async ({
   return response.data;
 };
 
-export const editProjectMutationFn = async () => {};
+export const editProjectMutationFn = async ({
+  projectId,
+  workspaceId,
+  data,
+}: EditProjectPayloadType): Promise<ProjectResponseType> => {
+  const response = await API.put(
+    `/project/${projectId}/workspace/${workspaceId}/update`,
+    data
+  );
+  return response.data;
+};
 
 export const getProjectsInWorkspaceQueryFn = async ({
   workspaceId,
