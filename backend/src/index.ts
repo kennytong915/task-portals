@@ -39,7 +39,7 @@ app.use(passport.session());
 
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'production' 
+    origin: config.NODE_ENV === 'production' 
       ? [config.FRONTEND_ORIGIN] 
       : ["http://localhost:3000", "http://localhost:5173"], // Local dev
     credentials: true, // Essential for cookies
