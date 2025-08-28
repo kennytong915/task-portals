@@ -18,6 +18,7 @@ import {
   AllProjectResponseType,
   ProjectByIdPayloadType,
   EditProjectPayloadType,
+  CreateTaskPayloadType,
 } from "@/types/api.type";
 
 export const loginMutationFn = async (
@@ -181,7 +182,17 @@ export const deleteProjectMutationFn = async ({
 //*******TASKS ********************************
 //************************* */
 
-export const createTaskMutationFn = async () => {};
+export const createTaskMutationFn = async ({
+  workspaceId,
+  projectId,
+  data
+}: CreateTaskPayloadType) => {
+  const response = await API.post(
+    `/task/project/${projectId}/workspace/${workspaceId}/create`,
+    data
+  );
+  return response.data;
+};
 
 export const getAllTasksQueryFn = async () => {};
 

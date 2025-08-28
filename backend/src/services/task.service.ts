@@ -30,7 +30,7 @@ export const createTaskService = async (
   if (assignedTo) {
     const user = await MemberModel.exists({
       userId: assignedTo,
-      workspace: workspaceId,
+      workspaceId: workspaceId,
     });
     if (!user) {
       throw new NotFoundException("User not found");
