@@ -19,7 +19,7 @@ export const useGetProjectsInWorkspaceQuery = ({
       }),
     staleTime: Infinity,
     placeholderData: skip ? undefined : keepPreviousData,
-    enabled: !skip,
+    enabled: !skip, //don't run query if skip is true
   });
   return query;
 };
