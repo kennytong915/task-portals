@@ -224,4 +224,15 @@ export const getAllTasksQueryFn = async ({
   
 };
 
-export const deleteTaskMutationFn = async () => {};
+export const deleteTaskMutationFn = async ({
+  workspaceId,
+  taskId,
+}: {
+  workspaceId: string;
+  taskId: string;
+}): Promise<{ message: string }> => {
+  const response = await API.delete(
+    `/task/${taskId}/workspace/${workspaceId}/delete`
+  );
+  return response.data;
+};

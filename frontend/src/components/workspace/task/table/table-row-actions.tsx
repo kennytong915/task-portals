@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/resuable/confirm-dialog";
 import { TaskType } from "@/types/api.type";
+import { deleteTaskMutationFn } from "@/lib/api";
+import useWorkspaceId from "@/hooks/use-workspace-id";
+import { toast } from "@/hooks/use-toast";
 
 interface DataTableRowActionsProps {
   row: Row<TaskType>;
@@ -19,11 +23,45 @@ interface DataTableRowActionsProps {
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [openDeleteDialog, setOpenDialog] = useState(false);
+  const workspaceId = useWorkspaceId();
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: deleteTaskMutationFn,
+  });
 
   const taskId = row.original._id as string;
   const taskCode = row.original.taskCode;
+  const projectId = row.original.project?._id as string | undefined;
 
-  const handleConfirm = () => {};
+  const handleConfirm = () => {
+    if (!workspaceId || !taskId || isPending) return;
+    mutate(
+      { workspaceId, taskId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["all-tasks", workspaceId] });
+          if (projectId) {
+            queryClient.invalidateQueries({
+              queryKey: ["project-analytics", projectId],
+            });
+          }
+          toast({
+            title: "Success",
+            description: "Task deleted successfully",
+            variant: "success",
+          });
+          setOpenDialog(false);
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
 
   return (
     <>
@@ -54,7 +92,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
 
       <ConfirmDialog
         isOpen={openDeleteDialog}
-        isLoading={false}
+        isLoading={isPending}
         onClose={() => setOpenDialog(false)}
         onConfirm={handleConfirm}
         title="Delete Task"
